@@ -1,0 +1,104 @@
+<idea-plugin>
+    <id>com.github.pet.pycharm-pet</id>
+    <name>Status Bar Pet</name>
+    <vendor url="https://github.com/DarshanBharat/JetBrains-Status-Bar-Pet-Plugin">DarshanBharat</vendor>
+
+    <description><![CDATA[
+        <p>
+            Status Bar Pet is a lightweight, non-intrusive animated pet companion living directly in your JetBrains status bar. 
+            Gamify your coding sessions, track Pomodoro focus sprints, and relieve programming stress with tactile mouse petting while keeping your editor clean and distraction-free.
+        </p>
+
+        <h3>Why Developers Love Status Bar Pet</h3>
+        <ul>
+            <li><b>Zero Distraction and 100% Silent:</b> No unexpected chimes, beeps, or audio interruptions during meetings or deep focus. Operates strictly within the bottom status bar without obscuring your code.</li>
+            <li><b>Pure Vector Rendering:</b> Handcrafted Java2D vector graphics that look ultra-sharp on HiDPI and Apple Retina displays with zero pixel blur.</li>
+            <li><b>Zero CPU Overhead:</b> Includes an instant <i>"Freeze Movement"</i> mode for 0% CPU consumption when you need absolute stillness, and an automatic sleep mode when you're away.</li>
+        </ul>
+
+        <h3>Key Features</h3>
+        <ul>
+            <li>
+                <b>Tactile Mouse Petting (Zero-Click Anti-Stress):</b> 
+                Simply move and gently rub your mouse cursor over the pet in the status bar. The pet instantly blushes, purrs with a soothing vibration animation, and emits floating hearts without requiring any mouse clicks.
+            </li>
+            <li>
+                <b>Real-Time Typing Synchronization:</b> 
+                The pet types along on its miniature laptop in cadence with your keystrokes, reacts to code deletions, and displays a crisp green <code>[✓ SAVED]</code> badge on <code>Ctrl+S</code> / <code>Cmd+S</code>.
+            </li>
+            <li>
+                <b>Flow-State Coding XP and Progression:</b> 
+                Earn experience points simply by doing what you already do — writing code. XP accumulates naturally from typing volume and coding duration, unlocking ranks from Intern to Distinguished Fellow.
+            </li>
+            <li>
+                <b>8 Unlockable Vector Accessories:</b> 
+                Level up to customize your mascot with Dapper Bowtie (Lv. 2), Coding Headphones (Lv. 3), Hacker Glasses (Lv. 5), Wizard Hat (Lv. 7), Pirate Captain Hat (Lv. 9), Golden Crown (Lv. 12), Angelic Halo (Lv. 15), and Viking Horns (Lv. 20).
+            </li>
+            <li>
+                <b>Built-in 25-Minute Pomodoro Focus Timer:</b> 
+                Launch 25-minute productivity sprints with a single right-click. Live countdown displays in the status bar tooltip, followed by polite break reminders.
+            </li>
+            <li>
+                <b>Inactivity Sleep:</b> 
+                Automatically curls up with drifting Zzz particles after 35 seconds of editor inactivity.
+            </li>
+        </ul>
+
+        <h3>Choose Your Mascot</h3>
+        <ul>
+            <li><b>Mochi the Cat:</b> Relaxed, purrs on clean code, and sleeps peacefully during long refactoring sessions.</li>
+            <li><b>Sparky the Corgi:</b> High-energy developer pup who wags his tail at every commit and green test suite.</li>
+            <li><b>Quackers the Rubber Duck:</b> The iconic symbol of rubber duck debugging, always ready to listen to your logic.</li>
+        </ul>
+
+        <h3>Quick Controls</h3>
+        <ul>
+            <li><b>Hover and Rub Mouse:</b> Tactile petting with purring vibration and hearts.</li>
+            <li><b>Left Click:</b> Inspect level, current XP progress, and Pomodoro timer.</li>
+            <li><b>Right Click:</b> Mascot switcher, accessory closet, Pomodoro toggle, and freeze mode.</li>
+        </ul>
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <h4>v1.0.0</h4>
+        <ul>
+            <li>Initial release of Status Bar Pet.</li>
+            <li>Mascots included: Cat (Mochi), Dog (Sparky), and Rubber Duck (Quackers).</li>
+            <li>Interactive mouse hover petting with vibration and floating hearts.</li>
+            <li>Continuous XP progression from typing and writing code.</li>
+            <li>Unlockable accessories across 9 developer levels.</li>
+            <li>Integrated 25-minute Pomodoro focus timer.</li>
+            <li>Pause/Freeze movement toggle and idle sleep mode.</li>
+            <li>Clean, silent vector graphics with zero sound effects.</li>
+        </ul>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <statusBarWidgetFactory
+                id="com.github.pet.pycharm.StatusBarPet"
+                implementation="com.github.pet.pycharm.ui.PetStatusBarWidgetFactory"
+                order="last"/>
+        <notificationGroup
+                id="Pet Notifications"
+                displayType="BALLOON"
+                isLogByDefault="true"/>
+        <editorFactoryListener
+                implementation="com.github.pet.pycharm.listeners.PetEditorFactoryListener"/>
+        <checkinHandlerFactory
+                implementation="com.github.pet.pycharm.listeners.PetCheckinHandlerFactory"/>
+        <applicationService
+                serviceImplementation="com.github.pet.pycharm.state.PetPersistentState"/>
+    </extensions>
+    <projectListeners>
+        <listener
+                class="com.github.pet.pycharm.listeners.PetExecutionListener"
+                topic="com.intellij.execution.ExecutionListener"/>
+    </projectListeners>
+    <applicationListeners>
+        <listener
+                class="com.github.pet.pycharm.listeners.PetFileSaveListener"
+                topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
+    </applicationListeners>
+</idea-plugin>
