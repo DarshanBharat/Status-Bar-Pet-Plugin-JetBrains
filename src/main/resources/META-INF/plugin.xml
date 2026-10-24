@@ -1,104 +1,92 @@
 <idea-plugin>
     <id>com.github.pet.pycharm-pet</id>
     <name>Status Bar Pet</name>
-    <vendor url="https://github.com/DarshanBharat/JetBrains-Status-Bar-Pet-Plugin">DarshanBharat</vendor>
-
+    <vendor email="contact@darshan-bharat.com" url="https://darshan-bharat.com">darshan</vendor>
     <description><![CDATA[
-        <p>
-            Status Bar Pet is a lightweight, non-intrusive animated pet companion living directly in your JetBrains status bar. 
-            Gamify your coding sessions, track Pomodoro focus sprints, and relieve programming stress with tactile mouse petting while keeping your editor clean and distraction-free.
-        </p>
+        <p><b>Status Bar Pet</b> brings a cozy, delightful, animated companion right into your JetBrains status bar. Completely silent, unobtrusive, and deeply integrated with your coding workflow, it is designed to keep you company and brighten your daily development sessions.</p>
 
-        <h3>Why Developers Love Status Bar Pet</h3>
+        <h3>Meet Your Companions</h3>
         <ul>
-            <li><b>Zero Distraction and 100% Silent:</b> No unexpected chimes, beeps, or audio interruptions during meetings or deep focus. Operates strictly within the bottom status bar without obscuring your code.</li>
-            <li><b>Pure Vector Rendering:</b> Handcrafted Java2D vector graphics that look ultra-sharp on HiDPI and Apple Retina displays with zero pixel blur.</li>
-            <li><b>Zero CPU Overhead:</b> Includes an instant <i>"Freeze Movement"</i> mode for 0% CPU consumption when you need absolute stillness, and an automatic sleep mode when you're away.</li>
+            <li><b>Luna the Pixel Cat:</b> Calm, elegant, and soft-spoken. Luna writes poetry in code, purrs on clean refactors, and rests in a warm plush bed.</li>
+            <li><b>Milo the Cyber Pup:</b> An energetic corgi pup who bounds with joy, wags his tail at green tests, and guards his wooden doghouse.</li>
+            <li><b>Waddles the Rubber Duck:</b> The legendary debugging master. Explain your tricky logic line by line to Waddles while enjoying the serene duck pond.</li>
+            <li><b>Pinchy the Rust Crab:</b> The fearless concurrency champion with snappy claws, borrow-checker approval, and a rocky ocean cove.</li>
+            <li><b>Multi-Pet Squad:</b> Pick any main companion or enable <i>Additional Pets</i> to display up to <b>three pets together</b> at the same time. Each gets its own dedicated lane and home.</li>
         </ul>
 
-        <h3>Key Features</h3>
+        <h3>Reactive to Your Real Coding Flow</h3>
         <ul>
-            <li>
-                <b>Tactile Mouse Petting (Zero-Click Anti-Stress):</b> 
-                Simply move and gently rub your mouse cursor over the pet in the status bar. The pet instantly blushes, purrs with a soothing vibration animation, and emits floating hearts without requiring any mouse clicks.
-            </li>
-            <li>
-                <b>Real-Time Typing Synchronization:</b> 
-                The pet types along on its miniature laptop in cadence with your keystrokes, reacts to code deletions, and displays a crisp green <code>[✓ SAVED]</code> badge on <code>Ctrl+S</code> / <code>Cmd+S</code>.
-            </li>
-            <li>
-                <b>Flow-State Coding XP and Progression:</b> 
-                Earn experience points simply by doing what you already do — writing code. XP accumulates naturally from typing volume and coding duration, unlocking ranks from Intern to Distinguished Fellow.
-            </li>
-            <li>
-                <b>8 Unlockable Vector Accessories:</b> 
-                Level up to customize your mascot with Dapper Bowtie (Lv. 2), Coding Headphones (Lv. 3), Hacker Glasses (Lv. 5), Wizard Hat (Lv. 7), Pirate Captain Hat (Lv. 9), Golden Crown (Lv. 12), Angelic Halo (Lv. 15), and Viking Horns (Lv. 20).
-            </li>
-            <li>
-                <b>Built-in 25-Minute Pomodoro Focus Timer:</b> 
-                Launch 25-minute productivity sprints with a single right-click. Live countdown displays in the status bar tooltip, followed by polite break reminders.
-            </li>
-            <li>
-                <b>Inactivity Sleep:</b> 
-                Automatically curls up with drifting Zzz particles after 35 seconds of editor inactivity.
-            </li>
+            <li><b>Terminal &amp; Editor Aware:</b> Whenever you type in the code editor or run commands in the built-in terminal, your pets pull out their mini glowing laptops and type rhythmically with you.</li>
+            <li><b>Running &amp; Debugging:</b> Pets sprint into action when tasks start and attentively investigate when you launch the debugger.</li>
+            <li><b>Green Tests &amp; Commits:</b> Celebrates git commits (+50 XP) and green test suite runs with victory dances, confetti, and celebratory leaps.</li>
+            <li><b>Merge Conflict Alert:</b> Spots merge conflict markers (<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>) and pulls out an investigative magnifying glass to help you review carefully.</li>
+            <li><b>Paper Ball Toss:</b> Rapid deletions or backspacing triggers a comical paper-crumpling toss into a mini recycling bin.</li>
         </ul>
 
-        <h3>Choose Your Mascot</h3>
+        <h3>A Living Companion World</h3>
         <ul>
-            <li><b>Mochi the Cat:</b> Relaxed, purrs on clean code, and sleeps peacefully during long refactoring sessions.</li>
-            <li><b>Sparky the Corgi:</b> High-energy developer pup who wags his tail at every commit and green test suite.</li>
-            <li><b>Quackers the Rubber Duck:</b> The iconic symbol of rubber duck debugging, always ready to listen to your logic.</li>
+            <li><b>Social Encounters:</b> Multiple companions will wander to the edge of their movement lanes to greet, play-bow, bat paws, or celebrate with clattering pincers. When homes are off, companions can even nap together.</li>
+            <li><b>Day &amp; Night Ambient Cycle:</b> Late-night coding? Between 21:00 and 06:00, homes render a soft glowing crescent moon and twinkling stars.</li>
+            <li><b>Natural Life Cycles:</b> Pets stroll, look around, twitch ears, stretch, yawn, and curl up into restful sleep with floating Zzz particles.</li>
+        </ul>
+
+        <h3>Leveling, Accessories &amp; Wellness</h3>
+        <ul>
+            <li><b>Progression &amp; Ranks:</b> Gain XP for writing code, completing runs, and making commits. Advance from <i>Junior Apprentice</i> all the way to <i>Legendary Builder</i>.</li>
+            <li><b>Unlockable Accessories:</b> Style your companion with party hats, developer glasses, headphones, wizard hats, halos, crowns, pirate bandanas, and viking helmets.</li>
+            <li><b>Treats &amp; Encouragement:</b> Feed crispy fish, juicy bones, golden breadcrumbs, or rusty gears once a minute for affection bonuses and cheerful pep talks.</li>
+            <li><b>Pomodoro &amp; Health Reminders:</b> Start a 25-minute focus session right from the menu, or turn on optional 45-minute posture and water break reminders.</li>
+        </ul>
+
+        <h3>Ultra-Lightweight &amp; Battery Friendly</h3>
+        <ul>
+            <li><b>Optimized for 8GB RAM PCs:</b> Engineered with zero-allocation geometric transforms, pre-instantiated stroke caches, and throttled window checks to ensure butter-smooth 60 FPS animation with zero micro-stutter.</li>
+            <li><b>Zero Background CPU Drain:</b> Automatically slows down when the IDE is unfocused and completely halts animation when minimized, closed, or obscured.</li>
+            <li><b>100% Silent &amp; Non-Intrusive:</b> No audio, no annoying popups that steal focus, and click-anywhere dismissible clean menus.</li>
         </ul>
 
         <h3>Quick Controls</h3>
         <ul>
-            <li><b>Hover and Rub Mouse:</b> Tactile petting with purring vibration and hearts.</li>
-            <li><b>Left Click:</b> Inspect level, current XP progress, and Pomodoro timer.</li>
-            <li><b>Right Click:</b> Mascot switcher, accessory closet, Pomodoro toggle, and freeze mode.</li>
+            <li><b>Left or Right Click:</b> Open the sleek quick-action menu (Feed, Cheer, Focus, Rename, Select Pets, Width, Motion).</li>
+            <li><b>Hover over Pet:</b> Gently pet your companion with your mouse cursor to trigger floating hearts and purrs.</li>
+            <li><b>Cursor Following:</b> Enable mouse following in the Motion menu to have your companions walk along with your cursor.</li>
+            <li><b>Custom Width:</b> Choose Compact (72px), Comfortable (112px), or Wide (180px) to suit any status bar density.</li>
         </ul>
-    ]]></description>
 
+        <p>Compatible with PyCharm, IntelliJ IDEA, WebStorm, CLion, GoLand, Rider, RustRover, Android Studio, and all other JetBrains IDEs across Dark, Light, and custom themes.</p>
+        <p>Feedback or suggestions? Contact: <a href="mailto:contact@darshan-bharat.com">contact@darshan-bharat.com</a></p>
+    ]]></description>
     <change-notes><![CDATA[
-        <h4>v1.0.0</h4>
+        <h4>1.1.0</h4>
         <ul>
-            <li>Initial release of Status Bar Pet.</li>
-            <li>Mascots included: Cat (Mochi), Dog (Sparky), and Rubber Duck (Quackers).</li>
-            <li>Interactive mouse hover petting with vibration and floating hearts.</li>
-            <li>Continuous XP progression from typing and writing code.</li>
-            <li>Unlockable accessories across 9 developer levels.</li>
-            <li>Integrated 25-minute Pomodoro focus timer.</li>
-            <li>Pause/Freeze movement toggle and idle sleep mode.</li>
-            <li>Clean, silent vector graphics with zero sound effects.</li>
+            <li>Updated default companion names to Luna, Milo, Waddles, and Pinchy.</li>
+            <li>Terminal awareness: typing in the built-in terminal or console now wakes up sleeping pets into active typing.</li>
+            <li>Major rendering efficiency: zero-allocation graphics transforms, static stroke caches, and throttled window checks for silky-smooth performance on 8GB RAM machines.</li>
+
+        </ul>
+        <h4>1.0.0</h4>
+        <ul>
+            <li>Initial release: multiple companions, individual homes, horizontal sleeping, and mouse following.</li>
+            <li>Clean controls, dismissible messages, no hover popups, and configurable widths.</li>
+            <li>Activity reactions, duck accessories, Pomodoro focus sessions, and break reminders.</li>
         </ul>
     ]]></change-notes>
-
     <depends>com.intellij.modules.platform</depends>
-
+    <depends>com.intellij.modules.vcs</depends>
     <extensions defaultExtensionNs="com.intellij">
-        <statusBarWidgetFactory
-                id="com.github.pet.pycharm.StatusBarPet"
-                implementation="com.github.pet.pycharm.ui.PetStatusBarWidgetFactory"
-                order="last"/>
-        <notificationGroup
-                id="Pet Notifications"
-                displayType="BALLOON"
-                isLogByDefault="true"/>
-        <editorFactoryListener
-                implementation="com.github.pet.pycharm.listeners.PetEditorFactoryListener"/>
-        <checkinHandlerFactory
-                implementation="com.github.pet.pycharm.listeners.PetCheckinHandlerFactory"/>
-        <applicationService
-                serviceImplementation="com.github.pet.pycharm.state.PetPersistentState"/>
+        <errorHandler implementation="com.github.pet.pycharm.reporting.PetErrorReportSubmitter"/>
+        <statusBarWidgetFactory id="com.github.pet.pycharm.StatusBarPet"
+            implementation="com.github.pet.pycharm.ui.PetStatusBarWidgetFactory" order="last"/>
+        <checkinHandlerFactory implementation="com.github.pet.pycharm.listeners.PetCheckinHandlerFactory"/>
+        <applicationService serviceImplementation="com.github.pet.pycharm.state.PetPersistentState"/>
+        <applicationService serviceImplementation="com.github.pet.pycharm.tracking.PetEditTracker"/>
     </extensions>
     <projectListeners>
-        <listener
-                class="com.github.pet.pycharm.listeners.PetExecutionListener"
-                topic="com.intellij.execution.ExecutionListener"/>
+        <listener class="com.github.pet.pycharm.listeners.PetExecutionListener"
+            topic="com.intellij.execution.ExecutionListener"/>
     </projectListeners>
     <applicationListeners>
-        <listener
-                class="com.github.pet.pycharm.listeners.PetFileSaveListener"
-                topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
+        <listener class="com.github.pet.pycharm.listeners.PetFileSaveListener"
+            topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
     </applicationListeners>
 </idea-plugin>

@@ -1,117 +1,48 @@
-# 🐾 Status Bar Pet — The Developer Companion for JetBrains IDEs
+# Status Bar Pet
 
-<p align="center">
-  <img src="src/main/resources/META-INF/pluginIcon.svg" width="96" height="96" alt="Status Bar Pet Logo" />
-</p>
+A silent companion for JetBrains IDEs. Plugin ID: `com.github.pet.pycharm-pet`.
+Vendor: `darshan`. Support: [contact@darshan-bharat.com](mailto:contact@darshan-bharat.com).
 
-<p align="center">
-  <b>A lightweight, non-intrusive animated pet living directly in your status bar.</b><br>
-  <i>Gamify your coding sessions, track Pomodoro sprints, and keep stress away with tactile petting.</i>
-</p>
+## Controls
 
-<p align="center">
-  <img src="https://img.shields.io/badge/JetBrains%20Marketplace-Compatible-007ACC?logo=jetbrains&style=flat-square" alt="JetBrains Compatible" />
-  <img src="https://img.shields.io/badge/IDE-PyCharm%20%7C%20IntelliJ%20%7C%20WebStorm%20%7C%20GoLand%20%7C%20Rider-blue?style=flat-square" alt="Supported IDEs" />
-  <img src="https://img.shields.io/badge/Language-Kotlin%202.0%20%7C%20Java%2017+-purple?logo=kotlin&style=flat-square" alt="Kotlin / Java" />
-  <img src="https://img.shields.io/badge/Audio-100%25%20Silent%20(No%20Interruptions)-success?style=flat-square" alt="Silent" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
-</p>
+- **Left or right click:** a compact menu with level and XP beside the pet name and Feed, Cheer, and Focus buttons. Hover over Pets, Accessories, Motion, or Statistics to reveal matching submenus. Arrow keys also open the submenus. Choices apply in place, keeping the menu open; Escape or clicking outside dismisses it.
+- **Move the pointer over a pet:** gentle petting with hearts. No hover popup appears.
+- **Move the pointer within the pet area:** pets follow it within their available space. Otherwise they walk to the edges and rest there.
 
----
+## Companions
 
-## 💡 Why Status Bar Pet?
+Choose Luna the cat, Milo the dog, Waddles the duck, or Pinchy the rust crab as the main pet. In **Additional pets**, choose other companions to show up to three pets together at a time. Each gets its own movement space and home: a cat bed, doghouse, duck pond, or rocky cove. Homes stay in place while pets move. Idle pets return home and lie down. Sleeping pets stay in place, with gentle breathing and floating Zzz; without homes they sleep where they are.
 
-Coding for hours can be solitary and exhausting. Heavy desktop pet overlays or sound-heavy plugins often distract you from your editor or break your concentration.
+Choose **Compact**, **Comfortable**, or **Wide** status bar widths. Two pets share 1.5 times the single-pet width; three share at most twice the width. Pets fill the available height and adapt to narrow layouts. They react to feeding, typing, deletion, saving, running, committing, debugging, and run outcomes. Duck accessories follow the duck's head position. Hats replace other hats instead of piling up.
 
-**Status Bar Pet** solves this by resting quietly in your IDE's status bar:
-* **Never steals focus:** Operates strictly within the status bar bar area at the bottom of your IDE.
-* **100% Silent:** No unexpected chimes, beeps, or audio interruptions during meetings or deep focus.
-* **Pure Vector Rendering:** Handcrafted Java2D vector graphics that look razor-sharp on HiDPI and Apple Retina displays with zero pixel blur.
-* **Zero Performance Tax:** Includes a strict *"Freeze Movement"* mode with **0% CPU overhead** when you need absolute stillness.
+Under **Pets**, rename the main pet (up to 20 characters). Names are saved individually for each species. Select another main pet to rename it. The menu does not include a color-change option.
 
----
+## Animation and movement
 
-## ✨ Features in Detail
+Pets yawn before settling into sleep, blend into their resting pose, and stretch as they stand up. Their horizontal position stays fixed throughout settling, sleeping, and waking. Idle gestures include grooming, looking around, yawning, and ear or wing twitches.
 
-### 🐾 1. Tactile Mouse Petting (Zero-Click Anti-Stress)
-When debugging hits a brick wall or you're waiting for a build to finish, simply move your mouse cursor over the pet and **gently rub back and forth**. 
-* The pet responds immediately with a soothing vibration animation, blushes, and releases floating hearts ❤️.
-* **No clicks required:** Interaction is completely natural and effortless.
+With multiple pets and companion interactions enabled, neighboring pets meet at the edges of their own movement lanes to greet and play with species-specific interactions: cats bat playfully with paws, dogs drop into a joyful play-bow with wagging tails, ducks flutter their wings, and Pinchy clatters raised pincers in celebration. When homes are off, a pair can nap together after playing.
 
-### ⌨️ 2. Real-Time Typing Companion
-* **Keystroke Sync:** The pet's paws mirror your typing cadence on its own miniature laptop while you code.
-* **Code Deletions:** Deleting lines or holding backspace triggers a quick crumpled paper-ball animation into a wastebasket.
-* **File Save Badge:** Saving your code (`Ctrl+S` / `Cmd+S`) displays a crisp `[✓ SAVED]` badge.
-* **Test & Build Reactions:** Pet cheers for green test suites and provides moral support when runs fail.
+Between 21:00 and 06:00, homes render a soft glowing crescent moon and twinkling star in an ambient day/night cycle.
 
-### 📈 3. Natural Flow-State XP & Level Progression
-* You earn experience points (XP) simply by doing what you already do: **writing code**.
-* XP accumulates automatically based on your active coding time and keystroke volume.
-* Climb through 9 developer career ranks from **Intern** up to **Distinguished Fellow** and unlock permanent cosmetic accessories.
+In **Motion**, choose wandering, mouse following, companion interactions, and optional **Break & stretch reminders** (hydration and posture nudges after sustained focus). **Freeze animation** pauses the pet entirely.
 
-### 👑 4. 8 Unlockable Accessories
-Customize your companion as you level up. Mix and match hats, glasses, and gear:
+Run success, failed runs, failed tests, successful tests, commits, debugging, and merge conflict markers (`<<<<<<<`) have distinct visual cues. Merge conflicts trigger an investigative magnifying glass cue, while failed runs prompt warm moral support. Ongoing run and debug reactions follow the process lifetime; stopping a process clears its ongoing reaction. Test profiles are recognized from their profile or executor names.
 
-| Level | Title | Unlockable Accessory | Description |
-| :---: | :--- | :--- | :--- |
-| **Lv. 1** | Intern | — | Clean natural mascot |
-| **Lv. 2** | Junior Developer | 🎀 **Dapper Bowtie** | Classic red gentleman's bowtie |
-| **Lv. 3** | Junior Developer | 🎧 **Coding Headphones** | Over-ear studio audio monitors |
-| **Lv. 5** | Mid-Level Developer | 👓 **Hacker Glasses** | Sleek rectangular dark shades |
-| **Lv. 7** | Senior Developer | 🎩 **Wizard Hat** | Midnight blue starry wizard hat |
-| **Lv. 9** | Tech Lead | 🏴‍☠️ **Pirate Captain Hat** | Skull-and-crossbones captain bicorne |
-| **Lv. 12** | Staff Engineer | 👑 **Golden Crown** | Polished royal gold crown with jewels |
-| **Lv. 15** | Principal Architect | 😇 **Angelic Halo** | Radiant floating golden halo |
-| **Lv. 20** | Distinguished Fellow | ⚔️ **Viking Horns** | Iron warrior horned helmet |
+Animation uses a slower refresh while the IDE is unfocused and stops when its window is minimized, hidden, or the widget is not showing. It resumes automatically when visible again. Focus timing and statistics use a separate clock.
 
-### 🍅 5. 25-Minute Pomodoro Focus Timer
-Maintain healthy flow cycles without needing a separate browser tab or mobile app.
-* **1-Click Launch:** Right-click the pet to start a 25-minute focus session.
-* **Live Status:** Hover tooltip shows remaining minutes and seconds in real-time.
-* **Gentle Notification:** A polite, non-modal balloon notifies you when it's time for a 5-minute stretch and water break.
+## Progress and statistics
 
-### 💤 6. Inactivity Sleep & Zero-Motion Freeze
-* **Auto Sleep:** After 35 seconds without editor keystrokes, your pet gently curls up to sleep with floating `Zzz` particles.
-* **Pause / Freeze:** Toggle *"Freeze Movement"* from the menu to lock the pet into a static icon with **0% background CPU usage**.
+Personal edits earn 1 XP per 5 added characters, including characters in a batch. Each full minute of active editing grants 5 XP, with sustained focus bonuses. Runs, tests, commits, and completed focus sessions earn bonuses. Feeding XP is limited to once per minute. Levels use a rising curve; the name row shows level and current/required XP, and pets briefly glow on a level-up. Accessory choices show their required unlock level. Existing level progress is migrated when loading old data.
 
----
+Personal typing edits earn 1 XP per 5 added characters, while automated edits (AI assistants, code generation, formatters, and refactorings) are isolated automatically and do not inflate personal typing XP or keystroke stats. The tracker observes loaded project documents, including documents shared by split editors, once per application. Only aggregate counts are stored; the plugin does not move or rewrite project code.
 
-## 🐶 Meet the Mascots
+Freeze stops visual animation. Focus timing and statistics continue independently. Message popups have close buttons and dismiss automatically. Plugin errors can be reported from JetBrains’ error dialog using “Report by email…”. Review and copy the full report, then open a draft addressed to contact@darshan-bharat.com. Send it from your email app; the plugin does not send automatically or mark a draft as delivered.
 
-Switch between 3 distinct companions anytime via right-click:
+## Build and install
 
-* 🐱 **Mochi the Cat:** Calm, sweet, and loves curling up during long architecture and refactoring sessions.
-* 🐶 **Sparky the Corgi:** High-energy developer pup who wags his tail at every commit and green test.
-* 🦆 **Quackers the Rubber Duck:** The time-honored symbol of rubber duck debugging, always ready to hear you explain your logic.
+The build uses the local PyCharm installation configured in `build.gradle.kts` and Java 25, targeting JetBrains 2026.2 and newer. Run `gradlew.bat buildPlugin` to create a ZIP in `build/distributions/`, then use **Settings → Plugins → Install Plugin from Disk**.
 
----
+Before a release, run `gradlew.bat releaseChecks verifyPlugin`. `releaseChecks` runs regression tests and offscreen rendering benchmarks in a separate headless JVM; it does not modify the running IDE. Results are saved under `build/reports/`. The compatibility verifier uses the configured local PyCharm installation. Other IDE versions and operating systems need their own verification and interactive smoke checks.
 
-## 🎮 How to Interact
-
-| Action | Result |
-| :--- | :--- |
-| **Hover & Rub Mouse** | Triggers tactile purring vibration and floating hearts ❤️ |
-| **Left Click** | Shows full status tooltip: Pet name, Level, Current XP, Pomodoro status |
-| **Right Click** | Opens interactive menu: Switch Mascot, Equip Accessories, Toggle Pomodoro, Pause Movement |
-| **Type in Editor** | Awards active typing XP and triggers keyboard tapping animation |
-
----
-
-## 🖥️ Compatibility
-
-Compatible with **JetBrains IDE 2024.1+** across all platforms (Windows, macOS, Linux):
-* **PyCharm** (Community & Professional)
-* **IntelliJ IDEA** (Community & Ultimate)
-* **WebStorm**
-* **GoLand**
-* **Rider**
-* **PhpStorm**
-* **CLion**
-* **RustRover**
-* **Android Studio**
-
----
-
-## 📜 License
-
-Distributed under the **MIT License**. Free and open-source forever.
+Version 1.1.0 keeps the official plugin identity `com.github.pet.pycharm-pet`. Existing `statusBarPet.xml` state uses the same storage name.

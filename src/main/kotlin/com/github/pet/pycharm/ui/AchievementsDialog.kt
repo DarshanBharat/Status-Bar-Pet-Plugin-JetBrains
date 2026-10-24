@@ -21,13 +21,15 @@ class AchievementsDialog(project: Project) : DialogWrapper(project) {
     override fun createCenterPanel(): JComponent {
         val state = PetPersistentState.getInstance()
         val root = JPanel(BorderLayout(0, 10)).apply {
-            preferredSize = Dimension(JBUI.scale(440), JBUI.scale(320))
+            preferredSize = Dimension(JBUI.scale(480), JBUI.scale(420))
             border = JBUI.Borders.empty(12)
         }
 
         val rank = state.getDeveloperRank()
         val header = JLabel("<html><b>🐾 Companion: ${state.getPetName()}</b> &bull; Rank: <span style='color: #FA8231;'><b>$rank (Lv. ${state.level})</b></span><br/>" +
-                "<span style='color: #888;'>Total Keys: ${state.totalKeystrokes} | Coding Time: ~${state.totalCodingMinutes}m | Streak: ${state.streakDays}d</span></html>").apply {
+                "<span style='color: #888;'>Typed edits: ${state.manualEditCount} (+${state.totalKeystrokes}/−${state.manualCharsRemoved} chars)<br/>" +
+                "Automated edits: ${state.otherEditCount + state.aiAgentEditCount} (+${state.otherCharsAdded + state.aiAgentCharsAdded}/−${state.otherCharsRemoved + state.aiAgentCharsRemoved} chars)<br/>" +
+                "Coding: ${state.totalCodingMinutes}m | Streak: ${state.streakDays}d</span></html>").apply {
             font = Font("Segoe UI", Font.PLAIN, 12)
             border = JBUI.Borders.emptyBottom(8)
         }
@@ -36,10 +38,10 @@ class AchievementsDialog(project: Project) : DialogWrapper(project) {
         val listPanel = JPanel(GridLayout(6, 1, 6, 6))
 
         val achievements = listOf(
-            Achievement("🦉 Night Owl", "Coded past 10 PM", LocalTime.now().hour >= 22 || state.totalKeystrokes > 200),
+            Achievement("🦉 Night Owl", "Coded past 10 PM", state.nightOwlUnlocked),
             Achievement("⚡ Speed Demon", "Reached 1,000+ keystrokes", state.totalKeystrokes >= 1000),
             Achievement("🧪 Test Master", "Passed 5+ clean test runs", state.passedTestsCount >= 5),
-            Achievement("📦 Git Champion", "Pushed code commits", state.commitsCount >= 1),
+            Achievement("📦 Git Champion", "Completed a code commit", state.commitsCount >= 1),
             Achievement("🔥 Streak Keeper", "Maintained 3+ days coding streak", state.streakDays >= 3),
             Achievement("☕ Deep Flow", "Completed a 25-minute Pomodoro focus sprint", state.completedPomodoros >= 1)
         )

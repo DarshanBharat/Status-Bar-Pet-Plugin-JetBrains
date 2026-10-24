@@ -12,6 +12,7 @@ class PetCheckinHandlerFactory : CheckinHandlerFactory() {
     override fun createHandler(panel: CheckinProjectPanel, commitContext: CommitContext): CheckinHandler {
         return object : CheckinHandler() {
             override fun beforeCheckin(): ReturnResult {
+                PetStatusBarWidget.notifyCommitStarted()
                 val now = java.time.LocalDateTime.now()
                 val isFridayEvening = now.dayOfWeek == java.time.DayOfWeek.FRIDAY && now.hour >= 16
                 val filesCount = panel.files.size
@@ -29,8 +30,7 @@ class PetCheckinHandlerFactory : CheckinHandlerFactory() {
             override fun checkinSuccessful() {
                 val msg = panel.commitMessage
                 val state = PetPersistentState.getInstance()
-                state.commitsCount += 1
-                val leveledUp = state.addXp(50)
+                val leveledUp = state.recordCommitSuccess()
                 PetStatusBarWidget.notifyCommitSuccess(msg, leveledUp)
             }
         }

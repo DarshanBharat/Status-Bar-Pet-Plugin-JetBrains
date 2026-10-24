@@ -6,7 +6,6 @@ import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.geom.GeneralPath
-import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.sin
 
 enum class ParticleType {
@@ -33,7 +32,9 @@ data class Particle(
 
 class PetParticleManager {
 
-    private val particles = CopyOnWriteArrayList<Particle>()
+    // All animation work runs on Swing's event thread; copying on each update is unnecessary.
+    private val particles = ArrayList<Particle>(64)
+    private fun addParticle(particle: Particle) { if (particles.size < 64) particles.add(particle) }
     private val zFont = Font("Segoe UI", Font.BOLD, 10)
     private val zColor = Color(0x70, 0xA1, 0xFF)
     private val heartColor = Color(0xFF, 0x47, 0x57)
@@ -49,8 +50,7 @@ class PetParticleManager {
     )
 
     fun spawnZzz(x: Float, y: Float) {
-        val letter = if (particles.size % 2 == 0) "z" else "Z"
-        particles.add(
+        addParticle(
             Particle(
                 x = x + (Math.random().toFloat() * 4f - 2f),
                 y = y,
@@ -58,14 +58,14 @@ class PetParticleManager {
                 vy = -0.45f,
                 alpha = 1.0f,
                 type = ParticleType.ZZZ,
-                text = letter,
+                text = "Zzz",
                 maxAge = 40
             )
         )
     }
 
     fun spawnHeart(x: Float, y: Float) {
-        particles.add(
+        addParticle(
             Particle(
                 x = x + (Math.random().toFloat() * 6f - 3f),
                 y = y,
@@ -79,7 +79,7 @@ class PetParticleManager {
     }
 
     fun spawnSparkle(x: Float, y: Float) {
-        particles.add(
+        addParticle(
             Particle(
                 x = x + (Math.random().toFloat() * 8f - 4f),
                 y = y + (Math.random().toFloat() * 4f - 2f),
@@ -93,7 +93,7 @@ class PetParticleManager {
     }
 
     fun spawnSweat(x: Float, y: Float) {
-        particles.add(
+        addParticle(
             Particle(
                 x = x + (Math.random().toFloat() * 4f - 2f),
                 y = y,
@@ -107,7 +107,7 @@ class PetParticleManager {
     }
 
     fun spawnPaperBall(x: Float, y: Float) {
-        particles.add(
+        addParticle(
             Particle(
                 x = x,
                 y = y,
@@ -122,7 +122,7 @@ class PetParticleManager {
 
     fun spawnConfetti(x: Float, y: Float) {
         val col = confettiColors.random()
-        particles.add(
+        addParticle(
             Particle(
                 x = x + (Math.random().toFloat() * 12f - 6f),
                 y = y,
@@ -155,7 +155,7 @@ class PetParticleManager {
             }
             p.alpha = (1f - (p.age.toFloat() / p.maxAge)).coerceIn(0f, 1f)
             if (p.age >= p.maxAge) {
-                particles.remove(p)
+                iterator.remove()
             }
         }
     }
@@ -165,6 +165,8 @@ class PetParticleManager {
 
         val origComposite = g2.composite
         val origHints = g2.renderingHints
+        val origFont = g2.font
+        val origColor = g2.color
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
@@ -204,6 +206,8 @@ class PetParticleManager {
 
         g2.composite = origComposite
         g2.setRenderingHints(origHints)
+        g2.font = origFont
+        g2.color = origColor
     }
 
     private fun drawMiniHeart(g2: Graphics2D, x: Float, y: Float) {
