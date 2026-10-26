@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.pet.pycharm-pet</id>
     <name>Status Bar Pet</name>
-    <vendor email="contact@darshan-bharat.com" url="https://darshan-bharat.com">darshan</vendor>
+    <vendor email="contact@darshan-bharat.com" url="https://darshan-bharat.com">Darshan Bharat</vendor>
     <description><![CDATA[
         <p><b>Status Bar Pet</b> brings a cozy, delightful, animated companion right into your JetBrains status bar. Completely silent, unobtrusive, and deeply integrated with your coding workflow, it is designed to keep you company and brighten your daily development sessions.</p>
 
@@ -57,6 +57,12 @@
         <p>Feedback or suggestions? Contact: <a href="mailto:contact@darshan-bharat.com">contact@darshan-bharat.com</a></p>
     ]]></description>
     <change-notes><![CDATA[
+        <h4>1.2.0</h4>
+        <ul>
+            <li>Fixed corner-stuck bug where pets would run their legs in place against the corner wall instead of sleeping.</li>
+            <li>Extended compatibility support to PyCharm and JetBrains IDEs 2024.2+ (build 242+).</li>
+            <li>Zero-allocation vector rendering engine: removed per-frame rendering hints cloning and replaced dynamic geometric allocations with shared buffers, cutting GC pressure by ~50%.</li>
+        </ul>
         <h4>1.1.0</h4>
         <ul>
             <li>Updated default companion names to Luna, Milo, Waddles, and Pinchy.</li>

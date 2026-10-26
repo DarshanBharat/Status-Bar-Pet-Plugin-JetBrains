@@ -102,11 +102,25 @@ public final class ReleaseChecks {
                 method(widget.getClass(),"advanceRest",motion.getClass(),PetActivityState.class,long.class,float.class).invoke(widget,motion,PetActivityState.SLEEPING,System.currentTimeMillis(),55f);
                 check((float)get(motion,"sleepBlend")==1f,"Static sleep pose");
             });
+            test("Pet home is centered in lane rather than corner",()->{
+                component.setSize(112,24);
+                float homeX=(float)method(widget.getClass(),"homeX",int.class,int.class).invoke(widget,0,1);
+                check(Math.abs(homeX-56f)<1f,"Single pet home not centered: "+homeX);
+            });
             test("Hidden widget stops animation",()->{
                 method(widget.getClass(),"updateAnimationSchedule").invoke(widget);
                 check(!((Timer)get(widget,"animationTimer")).isRunning(),"Hidden animation still running");
             });
             test("Hidden widget does not construct popups",()->method(widget.getClass(),"message",String.class).invoke(widget,"Hidden-window completion"));
+            test("Muted notifications suppress popup construction", () -> {
+                currentState.setNotificationsEnabled(false);
+                try {
+                    method(widget.getClass(), "message", String.class).invoke(widget, "Muted message");
+                    check(get(widget, "activeMessagePopup") == null, "Popup was constructed while notifications muted");
+                } finally {
+                    currentState.setNotificationsEnabled(true);
+                }
+            });
             test("Typing during freeze still refreshes inactivity",()->{
                 currentState.setPaused(true);set(widget,"lastActivity",System.currentTimeMillis()-60000);
                 try {
@@ -125,6 +139,19 @@ public final class ReleaseChecks {
                 currentState.setWidthId("compact");currentState.getCompanionPetIds().add("cat");currentState.getCompanionPetIds().add("duck");
                 method(widget.getClass(),"heartbeat").invoke(widget);
                 check(component.getPreferredSize().width==144,"Remote window kept stale width");
+            });
+            test("Long-running background tasks expire after max reaction duration", () -> {
+                PetStatusBarWidget.Companion.notifyRunStarted("FastAPI Backend", false, project, 12345L);
+                var queued = new ArrayList<>(dispatchQueue); dispatchQueue.clear(); queued.forEach(Runnable::run);
+                long now = System.currentTimeMillis();
+                PetActivityState stateDuring = (PetActivityState) method(widget.getClass(), "activityFor", PetType.class, long.class)
+                    .invoke(widget, PetType.CAT, now + 5000L);
+                check(stateDuring == PetActivityState.RUNNING, "Pet was not RUNNING during active window: " + stateDuring);
+                PetActivityState stateAfter = (PetActivityState) method(widget.getClass(), "activityFor", PetType.class, long.class)
+                    .invoke(widget, PetType.CAT, now + PetStatusBarWidget.MAX_RUN_REACTION_MS + 1000L);
+                check(stateAfter != PetActivityState.RUNNING, "Pet stayed locked in RUNNING after max reaction duration: " + stateAfter);
+                PetStatusBarWidget.Companion.notifyRunStopped(12345L, project);
+                queued = new ArrayList<>(dispatchQueue); dispatchQueue.clear(); queued.forEach(Runnable::run);
             });
         } finally {
             ((Timer)get(widget,"messageTimer")).start();
@@ -262,6 +289,21 @@ public final class ReleaseChecks {
             check(s.getSelectedPetType()==PetType.CAT,"Pet selection didn't update");
             var wander=(JMenuItem)descendants(root).stream().filter(c->c instanceof JCheckBoxMenuItem b&&b.getText().equals("Wander around")).findFirst().orElseThrow();
             method(wander.getUI().getClass(),"doClick",MenuSelectionManager.class).invoke(wander.getUI(),manager);check(!s.getWanderingEnabled(),"Wander around toggle didn't update");
+        });
+        test("Front action Pause button toggles pause state and updates text", () -> {
+            var s = new PetPersistentState();
+            Function0<Unit> no = () -> Unit.INSTANCE;
+            var root = new PetMenuPanel(s, () -> false, no, no, no, no, no);
+            var pauseBtn = (JButton) descendants(root).stream()
+                .filter(c -> c instanceof JButton b && ("Pause".equals(b.getText()) || "Resume".equals(b.getText())))
+                .findFirst().orElseThrow();
+            check("Pause".equals(pauseBtn.getText()), "Initial button text not Pause: " + pauseBtn.getText());
+            pauseBtn.doClick();
+            check(s.isPaused(), "State was not paused after click");
+            check("Resume".equals(pauseBtn.getText()), "Button text not updated to Resume: " + pauseBtn.getText());
+            pauseBtn.doClick();
+            check(!s.isPaused(), "State was not unpaused after click");
+            check("Pause".equals(pauseBtn.getText()), "Button text not updated back to Pause: " + pauseBtn.getText());
         });
         test("Long names reserve room for complete XP",()->{
             var s=new PetPersistentState();s.getCustomNames().put("dog","WWWWWWWWWWWWWWWWWWWW");s.setLevel(100);s.setXp(43000);

@@ -11,7 +11,53 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object PetVectorRenderer {
-    private fun Graphics2D.fillOval(x: Float, y: Float, width: Float, height: Float) = fill(Ellipse2D.Float(x, y, width, height))
+    // Reusable geometry buffers to eliminate per-frame allocations during 60 FPS rendering
+    private val sharedRound = RoundRectangle2D.Float()
+    private val sharedEllipse = Ellipse2D.Float()
+    private val sharedLine = Line2D.Float()
+    private val sharedPath = Path2D.Float()
+    private val sharedPolyX = IntArray(8)
+    private val sharedPolyY = IntArray(8)
+    private val sharedPoly = Polygon()
+
+    private fun Graphics2D.fillOval(x: Float, y: Float, width: Float, height: Float) {
+        sharedEllipse.setFrame(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
+        fill(sharedEllipse)
+    }
+    private fun Graphics2D.drawOval(x: Float, y: Float, width: Float, height: Float) {
+        sharedEllipse.setFrame(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
+        draw(sharedEllipse)
+    }
+    private fun Graphics2D.fillRoundRect(x: Float, y: Float, w: Float, h: Float, arcW: Float, arcH: Float) {
+        sharedRound.setRoundRect(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble(), arcW.toDouble(), arcH.toDouble())
+        fill(sharedRound)
+    }
+    private fun Graphics2D.drawRoundRect(x: Float, y: Float, w: Float, h: Float, arcW: Float, arcH: Float) {
+        sharedRound.setRoundRect(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble(), arcW.toDouble(), arcH.toDouble())
+        draw(sharedRound)
+    }
+    private fun Graphics2D.drawLine(x1: Float, y1: Float, x2: Float, y2: Float) {
+        sharedLine.setLine(x1.toDouble(), y1.toDouble(), x2.toDouble(), y2.toDouble())
+        draw(sharedLine)
+    }
+    private fun Graphics2D.fillTriangle(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float) {
+        sharedPolyX[0] = x1.toInt(); sharedPolyX[1] = x2.toInt(); sharedPolyX[2] = x3.toInt()
+        sharedPolyY[0] = y1.toInt(); sharedPolyY[1] = y2.toInt(); sharedPolyY[2] = y3.toInt()
+        sharedPoly.npoints = 3
+        sharedPoly.xpoints = sharedPolyX
+        sharedPoly.ypoints = sharedPolyY
+        sharedPoly.invalidate()
+        fill(sharedPoly)
+    }
+    private fun Graphics2D.fillTriangle(x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int) {
+        sharedPolyX[0] = x1; sharedPolyX[1] = x2; sharedPolyX[2] = x3
+        sharedPolyY[0] = y1; sharedPolyY[1] = y2; sharedPolyY[2] = y3
+        sharedPoly.npoints = 3
+        sharedPoly.xpoints = sharedPolyX
+        sharedPoly.ypoints = sharedPolyY
+        sharedPoly.invalidate()
+        fill(sharedPoly)
+    }
 
     // Palette
     private val CAT_WHITE = Color(0xFD, 0xFD, 0xFD)
@@ -212,7 +258,6 @@ object PetVectorRenderer {
         actionProgress: Float
     ) {
         val origTransform = g2.transform
-        val origHints = g2.renderingHints
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
@@ -224,12 +269,12 @@ object PetVectorRenderer {
         // Ground shadow
         val shadowW = if (state == PetActivityState.SLEEPING) 30f else 18f
         g2.color = SHADOW_COLOR
-        g2.fill(Ellipse2D.Float(-shadowW / 2, 7.5f, shadowW, 3.5f))
+        g2.fillOval(-shadowW / 2, 7.5f, shadowW, 3.5f)
 
         // Sleeping mat
         if (state == PetActivityState.SLEEPING) {
             g2.color = SLEEP_MAT
-            g2.fill(RoundRectangle2D.Float(-15f, 5.5f, 30f, 4.5f, 4f, 4f))
+            g2.fillRoundRect(-15f, 5.5f, 30f, 4.5f, 4f, 4f)
         }
 
         g2.translate(0.0, -effectiveJump.toDouble())
@@ -270,7 +315,6 @@ object PetVectorRenderer {
         drawActivityCue(g2, petType, state, tick)
 
         g2.transform = origTransform
-        g2.setRenderingHints(origHints)
     }
 
     fun renderHome(g2: Graphics2D, petType: PetType, tick: Long) {
@@ -465,8 +509,8 @@ object PetVectorRenderer {
     private fun drawRestingEyes(g: Graphics2D, headY: Float, singleEye: Boolean) {
         g.color = EYE_COLOR
         g.stroke = STROKE_12_ROUND
-        if (!singleEye) g.draw(Line2D.Float(-4f, headY + 3f, -2f, headY + 3f))
-        g.draw(Line2D.Float(2f, headY + 3f, 4f, headY + 3f))
+        if (!singleEye) g.drawLine(-4f, headY + 3f, -2f, headY + 3f)
+        g.drawLine(2f, headY + 3f, 4f, headY + 3f)
     }
 
     private fun drawPersonality(g: Graphics2D, type: PetType, state: PetActivityState, tick: Long, progress: Float, coat: PetCoat) {
@@ -477,10 +521,10 @@ object PetVectorRenderer {
                 val opening = sin(progress.coerceIn(0f, 1f) * Math.PI).toFloat().coerceAtLeast(0f)
                 g.color = EYE_COLOR
                 val mouthX = if (type == PetType.DUCK) 7f else if (type == PetType.CRAB) 1f else 0f
-                g.fill(Ellipse2D.Float(mouthX, -3.5f, 2.5f, 1f + opening * 3f))
+                g.fillOval(mouthX, -3.5f, 2.5f, 1f + opening * 3f)
                 if (opening > 0.4f) {
                     g.color = DOG_TONGUE
-                    g.fill(Ellipse2D.Float(if (type == PetType.DUCK) 7.8f else if (type == PetType.CRAB) 1.7f else 0.7f, -1.5f, 1.2f, opening * 1.5f))
+                    g.fillOval(if (type == PetType.DUCK) 7.8f else if (type == PetType.CRAB) 1.7f else 0.7f, -1.5f, 1.2f, opening * 1.5f)
                 }
             }
             PetActivityState.GROOMING -> {
@@ -660,69 +704,69 @@ object PetVectorRenderer {
         if (state == PetActivityState.SLEEPING) {
             // A long, low body and resting head read as lying down at small sizes.
             g2.color = dogBody
-            g2.fill(RoundRectangle2D.Float(-12f, 1f + breathing, 24f, 6.5f, 6f, 6f))
+            g2.fillRoundRect(-12f, 1f + breathing, 24f, 6.5f, 6f, 6f)
 
             // Floppy sleeping ear
             g2.color = dogEar
-            g2.fill(RoundRectangle2D.Float(2f, 0f + breathing, 4f, 6f, 3f, 3f))
+            g2.fillRoundRect(2f, 0f + breathing, 4f, 6f, 3f, 3f)
 
             // White muzzle patch
             g2.color = DOG_WHITE
-            g2.fill(Ellipse2D.Float(6f, 3f + breathing, 7f, 4f))
+            g2.fillOval(6f, 3f + breathing, 7f, 4f)
 
             // Sleeping eye (- -)
             g2.color = EYE_COLOR
             g2.stroke = STROKE_12_ROUND
-            g2.drawLine(5, 3, 8, 3)
+            g2.drawLine(5f, 3f, 8f, 3f)
 
             // Button nose
             g2.color = NOSE_BLACK
-            g2.fill(Ellipse2D.Float(11f, 4f, 2f, 1.8f))
+            g2.fillOval(11f, 4f, 2f, 1.8f)
             return
         }
 
         // 1. Wagging Tail (Behind body)
         g2.color = dogBody
         g2.stroke = STROKE_28_ROUND
-        val tailPath = GeneralPath()
-        tailPath.moveTo(-6.0, 3.0)
-        tailPath.quadTo(-10.0 - tailSwing * 0.1, 0.0, -9.0 + tailSwing * 0.2, -5.0 + tailSwing * 0.1)
-        g2.draw(tailPath)
+        sharedPath.reset()
+        sharedPath.moveTo(-6.0, 3.0)
+        sharedPath.quadTo(-10.0 - tailSwing * 0.1, 0.0, -9.0 + tailSwing * 0.2, -5.0 + tailSwing * 0.1)
+        g2.draw(sharedPath)
 
         // 2. Walking Legs
         val legBob = if (walkCycle != 0f) sin(walkCycle).toFloat() * 1.8f else 0f
         g2.color = DOG_WHITE
-        g2.fill(RoundRectangle2D.Float(-5f, 5.5f + legBob, 3.5f, 3.5f, 1.8f, 1.8f))
-        g2.fill(RoundRectangle2D.Float(1.5f, 5.5f - legBob, 3.5f, 3.5f, 1.8f, 1.8f))
+        g2.fillRoundRect(-5f, 5.5f + legBob, 3.5f, 3.5f, 1.8f, 1.8f)
+        g2.fillRoundRect(1.5f, 5.5f - legBob, 3.5f, 3.5f, 1.8f, 1.8f)
 
         // 3. Body
-        g2.color = dogBody
         val bodyY = -3f + breathing - (if (walkCycle != 0f) kotlin.math.abs(legBob) * 0.4f else 0f)
-        g2.fill(RoundRectangle2D.Float(-7f, bodyY, 14f, 10f, 6f, 6f))
+        g2.color = dogBody
+        g2.fillRoundRect(-7f, bodyY, 14f, 10f, 6f, 6f)
 
         // White chest fluff
         g2.color = DOG_WHITE
-        g2.fill(Ellipse2D.Float(-2f, bodyY + 3f, 6f, 6f))
+        g2.fillOval(-2f, bodyY + 3f, 6f, 6f)
 
         // 4. Head (Proportional & Centered)
         val headY = bodyY - 7f
         g2.color = dogBody
-        g2.fill(RoundRectangle2D.Float(-6f, headY, 13f, 9.5f, 5f, 5f))
+        g2.fillRoundRect(-6f, headY, 13f, 9.5f, 5f, 5f)
 
         // Floppy Ears (left & right flanking the head)
         val earBounce = if (!isPaused && state == PetActivityState.EAR_TWITCH) sin(tick * 0.9).toFloat() * 1.8f
             else if (!isPaused && walkCycle != 0f) sin(walkCycle * 2).toFloat() * 1.2f else 0f
         g2.color = dogEar
-        g2.fill(RoundRectangle2D.Float(-8.5f, headY + earBounce + 1f, 3.5f, 7.5f, 2.5f, 2.5f))
-        g2.fill(RoundRectangle2D.Float(5.5f, headY + earBounce + 1f, 3.5f, 7.5f, 2.5f, 2.5f))
+        g2.fillRoundRect(-8.5f, headY + earBounce + 1f, 3.5f, 7.5f, 2.5f, 2.5f)
+        g2.fillRoundRect(5.5f, headY + earBounce + 1f, 3.5f, 7.5f, 2.5f, 2.5f)
 
         // 5. White Muzzle (Centered at bottom half of face, BELOW eyes!)
         g2.color = DOG_WHITE
-        g2.fill(RoundRectangle2D.Float(-1.5f, headY + 4f, 6f, 4.5f, 3f, 3f))
+        g2.fillRoundRect(-1.5f, headY + 4f, 6f, 4.5f, 3f, 3f)
 
         // Centered Cute Black Button Nose
         g2.color = NOSE_BLACK
-        g2.fill(Ellipse2D.Float(0.5f, headY + 4.2f, 2.2f, 1.8f))
+        g2.fillOval(0.5f, headY + 4.2f, 2.2f, 1.8f)
 
         // 6. Eyes (Positioned ABOVE the muzzle, cleanly spaced!)
         if (!isPaused && (state == PetActivityState.YAWNING || state == PetActivityState.GROOMING)) {
@@ -810,62 +854,57 @@ object PetVectorRenderer {
 
         if (state == PetActivityState.SLEEPING) {
             g2.color = catBody
-            g2.fill(RoundRectangle2D.Float(-12f, 1.5f + breathing, 24f, 6f, 6f, 6f))
+            g2.fillRoundRect(-12f, 1.5f + breathing, 24f, 6f, 6f, 6f)
 
-            val leftEar = Polygon(intArrayOf(1, 3, 5), intArrayOf(2, -1, 2), 3)
-            val rightEar = Polygon(intArrayOf(6, 8, 10), intArrayOf(2, -1, 2), 3)
-            g2.fill(leftEar)
-            g2.fill(rightEar)
+            g2.fillTriangle(1, 2, 3, -1, 5, 2)
+            g2.fillTriangle(6, 2, 8, -1, 10, 2)
 
             g2.color = EYE_COLOR
             g2.stroke = STROKE_12_ROUND
             g2.drawLine(3, 4, 5, 4)
             g2.drawLine(7, 4, 9, 4)
             g2.color = CAT_WHITE
-            g2.fill(RoundRectangle2D.Float(6f, 6f, 7f, 2f, 2f, 2f))
+            g2.fillRoundRect(6f, 6f, 7f, 2f, 2f, 2f)
             return
         }
 
         // Tail
         g2.color = catBody
         g2.stroke = STROKE_26_ROUND
-        val tailPath = GeneralPath()
-        tailPath.moveTo(-6.0, 3.0)
-        tailPath.curveTo(-13.0, 4.0 - tailSwing * 0.08, -14.0 + tailSwing * 0.12, -9.0, -9.0 + tailSwing * 0.08, -7.0)
-        g2.draw(tailPath)
+        sharedPath.reset()
+        sharedPath.moveTo(-6.0, 3.0)
+        sharedPath.curveTo(-13.0, 4.0 - tailSwing * 0.08, -14.0 + tailSwing * 0.12, -9.0, -9.0 + tailSwing * 0.08, -7.0)
+        g2.draw(sharedPath)
 
         // Legs
         val legBob = if (walkCycle != 0f) sin(walkCycle).toFloat() * 1.8f else 0f
         g2.color = CAT_WHITE
-        g2.fill(RoundRectangle2D.Float(-5f, 5.5f + legBob, 3.5f, 3.5f, 1.8f, 1.8f))
-        g2.fill(RoundRectangle2D.Float(1.5f, 5.5f - legBob, 3.5f, 3.5f, 1.8f, 1.8f))
+        g2.fillRoundRect(-5f, 5.5f + legBob, 3.5f, 3.5f, 1.8f, 1.8f)
+        g2.fillRoundRect(1.5f, 5.5f - legBob, 3.5f, 3.5f, 1.8f, 1.8f)
 
         // Body
         g2.color = catBody
         val bodyY = -3f + breathing - (if (walkCycle != 0f) kotlin.math.abs(legBob) * 0.4f else 0f)
-        g2.fill(RoundRectangle2D.Float(-7f, bodyY, 14f, 10f, 6f, 6f))
+        g2.fillRoundRect(-7f, bodyY, 14f, 10f, 6f, 6f)
 
         // White belly patch
         g2.color = CAT_WHITE
-        g2.fill(Ellipse2D.Float(-2f, bodyY + 3f, 6f, 6f))
+        g2.fillOval(-2f, bodyY + 3f, 6f, 6f)
 
         // Head
         val headY = bodyY - 7f
         g2.color = catBody
-        g2.fill(RoundRectangle2D.Float(-6f, headY, 13f, 9.5f, 5f, 5f))
+        g2.fillRoundRect(-6f, headY, 13f, 9.5f, 5f, 5f)
 
         // Ears with pink inner ear
         val twitch = if (!isPaused && state == PetActivityState.EAR_TWITCH) (sin(tick * 0.9) * 2).toInt() else 0
-        val earL = Polygon(intArrayOf(-6, -3 + twitch, 0), intArrayOf(headY.toInt() + 1, headY.toInt() - 4, headY.toInt() + 1), 3)
-        val earR = Polygon(intArrayOf(1, 4, 7), intArrayOf(headY.toInt() + 1, headY.toInt() - 4, headY.toInt() + 1), 3)
-        g2.fill(earL)
-        g2.fill(earR)
+        val hY = headY.toInt()
+        g2.fillTriangle(-6, hY + 1, -3 + twitch, hY - 4, 0, hY + 1)
+        g2.fillTriangle(1, hY + 1, 4, hY - 4, 7, hY + 1)
 
         g2.color = CAT_INNER_EAR
-        val inEarL = Polygon(intArrayOf(-5, -3, -1), intArrayOf(headY.toInt() + 1, headY.toInt() - 2, headY.toInt() + 1), 3)
-        val inEarR = Polygon(intArrayOf(2, 4, 6), intArrayOf(headY.toInt() + 1, headY.toInt() - 2, headY.toInt() + 1), 3)
-        g2.fill(inEarL)
-        g2.fill(inEarR)
+        g2.fillTriangle(-5, hY + 1, -3, hY - 2, -1, hY + 1)
+        g2.fillTriangle(2, hY + 1, 4, hY - 2, 6, hY + 1)
 
         // Eyes
         if (!isPaused && (state == PetActivityState.YAWNING || state == PetActivityState.GROOMING)) {
@@ -945,11 +984,11 @@ object PetVectorRenderer {
 
         if (state == PetActivityState.SLEEPING) {
             g2.color = duckBody
-            g2.fill(Ellipse2D.Float(-12f, 1f + breathing, 23f, 7f))
-            g2.fill(Ellipse2D.Float(3f, -0.5f + breathing, 9f, 6f))
+            g2.fillOval(-12f, 1f + breathing, 23f, 7f)
+            g2.fillOval(3f, -0.5f + breathing, 9f, 6f)
 
             g2.color = DUCK_BEAK
-            g2.fill(RoundRectangle2D.Float(9f, 2f + breathing, 4.5f, 2f, 1.5f, 1.5f))
+            g2.fillRoundRect(9f, 2f + breathing, 4.5f, 2f, 1.5f, 1.5f)
 
             g2.color = EYE_COLOR
             g2.stroke = STROKE_12_ROUND
@@ -959,33 +998,32 @@ object PetVectorRenderer {
 
         // Tail feather
         g2.color = duckBody
-        val tailTwitch = if (isPaused) 0 else (sin(tick * 0.3) * 2).toInt()
-        val tail = Polygon(intArrayOf(-10, -5, -5), intArrayOf(-1 + tailTwitch, 3, -4), 3)
-        g2.fill(tail)
+        val tailTwitch = if (isPaused) 0f else (sin(tick * 0.3) * 2).toFloat()
+        g2.fillTriangle(-10f, -1f + tailTwitch, -5f, 3f, -5f, -4f)
 
         // Feet / Waddling
         val footBob = if (walkCycle != 0f) sin(walkCycle).toFloat() * 1.8f else 0f
         g2.color = DUCK_BEAK
-        g2.fill(RoundRectangle2D.Float(-3.5f, 5.5f + footBob, 3.5f, 3f, 1.5f, 1.5f))
-        g2.fill(RoundRectangle2D.Float(1.5f, 5.5f - footBob, 3.5f, 3f, 1.5f, 1.5f))
+        g2.fillRoundRect(-3.5f, 5.5f + footBob, 3.5f, 3f, 1.5f, 1.5f)
+        g2.fillRoundRect(1.5f, 5.5f - footBob, 3.5f, 3f, 1.5f, 1.5f)
 
         // Body
         val bodyY = -3f + breathing - (if (walkCycle != 0f) kotlin.math.abs(footBob) * 0.4f else 0f)
         g2.color = duckBody
-        g2.fill(Ellipse2D.Float(-7f, bodyY, 14f, 10f))
+        g2.fillOval(-7f, bodyY, 14f, 10f)
 
         // Wing
         g2.color = duckWing
-        g2.fill(RoundRectangle2D.Float(-3.5f, bodyY + 2f - wingFlap, 7f, 4.5f, 2.5f, 2.5f))
+        g2.fillRoundRect(-3.5f, bodyY + 2f - wingFlap, 7f, 4.5f, 2.5f, 2.5f)
 
         // Head
         val headY = bodyY - 6.5f
         g2.color = duckBody
-        g2.fill(Ellipse2D.Float(-0.5f, headY, 10f, 9f))
+        g2.fillOval(-0.5f, headY, 10f, 9f)
 
         // Orange Bill / Beak
         g2.color = DUCK_BEAK
-        g2.fill(RoundRectangle2D.Float(6.5f, headY + 3.5f, 6.5f, 3.5f, 1.8f, 1.8f))
+        g2.fillRoundRect(6.5f, headY + 3.5f, 6.5f, 3.5f, 1.8f, 1.8f)
         g2.color = DUCK_BEAK_SHADOW
         g2.drawLine(7, headY.toInt() + 5, 12, headY.toInt() + 5)
 
@@ -1008,9 +1046,9 @@ object PetVectorRenderer {
             g2.drawLine(5, headY.toInt() + 5, 2, headY.toInt() + 3)
         } else if (!isPaused && state == PetActivityState.MEME_WARNING) {
             g2.color = EYE_COLOR
-            g2.fill(Ellipse2D.Float(1.5f, headY + 1.2f, 3.8f, 4.2f))
+            g2.fillOval(1.5f, headY + 1.2f, 3.8f, 4.2f)
             g2.color = EYE_SHINE
-            g2.fill(Ellipse2D.Float(2.5f, headY + 1.8f, 1.8f, 1.8f))
+            g2.fillOval(2.5f, headY + 1.8f, 1.8f, 1.8f)
         } else {
             val blink = !isPaused && (tick % 95L in 90L..94L)
             if (blink) {
@@ -1019,10 +1057,10 @@ object PetVectorRenderer {
                 g2.drawLine(2, headY.toInt() + 3, 5, headY.toInt() + 3)
             } else {
                 g2.color = EYE_COLOR
-                g2.fill(Ellipse2D.Float(2f + gaze * 0.7f, headY + 1.8f, 3.2f, 3.5f))
+                g2.fillOval(2f + gaze * 0.7f, headY + 1.8f, 3.2f, 3.5f)
 
                 g2.color = EYE_SHINE
-                g2.fill(Ellipse2D.Float(3.2f + gaze * 0.7f, headY + 2.2f, 1.2f, 1.2f))
+                g2.fillOval(3.2f + gaze * 0.7f, headY + 2.2f, 1.2f, 1.2f)
             }
         }
     }
@@ -1038,12 +1076,12 @@ object PetVectorRenderer {
         if (state == PetActivityState.SLEEPING) {
             // Flat, cozy shell resting on mat
             g2.color = crabBody
-            g2.fill(RoundRectangle2D.Float(-12f, 1.5f + breathing, 24f, 6.5f, 6f, 6f))
+            g2.fillRoundRect(-12f, 1.5f + breathing, 24f, 6.5f, 6f, 6f)
 
             // Folded claws
             g2.color = crabClaw
-            g2.fill(RoundRectangle2D.Float(-14f, 2.5f + breathing, 4.5f, 5f, 2.5f, 2.5f))
-            g2.fill(RoundRectangle2D.Float(9.5f, 2.5f + breathing, 4.5f, 5f, 2.5f, 2.5f))
+            g2.fillRoundRect(-14f, 2.5f + breathing, 4.5f, 5f, 2.5f, 2.5f)
+            g2.fillRoundRect(9.5f, 2.5f + breathing, 4.5f, 5f, 2.5f, 2.5f)
 
             // Sleeping eye slits (- -) on little lowered stalks
             g2.color = EYE_COLOR
@@ -1060,18 +1098,18 @@ object PetVectorRenderer {
         g2.stroke = STROKE_18_ROUND
 
         // 3 legs on left side, 3 legs on right side
-        g2.draw(Line2D.Float(-5f, 4f, -9f, 7.5f + scuttleL))
-        g2.draw(Line2D.Float(-3f, 4.5f, -6f, 7.5f - scuttleL))
-        g2.draw(Line2D.Float(-1f, 4.5f, -3f, 7.5f + scuttleL))
+        g2.drawLine(-5f, 4f, -9f, 7.5f + scuttleL)
+        g2.drawLine(-3f, 4.5f, -6f, 7.5f - scuttleL)
+        g2.drawLine(-1f, 4.5f, -3f, 7.5f + scuttleL)
 
-        g2.draw(Line2D.Float(1f, 4.5f, 3f, 7.5f - scuttleR))
-        g2.draw(Line2D.Float(3f, 4.5f, 6f, 7.5f + scuttleR))
-        g2.draw(Line2D.Float(5f, 4f, 9f, 7.5f - scuttleR))
+        g2.drawLine(1f, 4.5f, 3f, 7.5f - scuttleR)
+        g2.drawLine(3f, 4.5f, 6f, 7.5f + scuttleR)
+        g2.drawLine(5f, 4f, 9f, 7.5f - scuttleR)
 
         // 2. Rounded Shell (Carapace)
         val bodyY = -3f + breathing - (if (walkCycle != 0f) kotlin.math.abs(scuttleL) * 0.25f else 0f)
         g2.color = crabBody
-        g2.fill(RoundRectangle2D.Float(-7.5f, bodyY, 15f, 9.5f, 7f, 7f))
+        g2.fillRoundRect(-7.5f, bodyY, 15f, 9.5f, 7f, 7f)
 
         // Lighter under-shell highlight
         g2.color = Color(
@@ -1079,14 +1117,14 @@ object PetVectorRenderer {
             (crabBody.green * 1.12).toInt().coerceIn(0, 255),
             (crabBody.blue * 1.15).toInt().coerceIn(0, 255)
         )
-        g2.fill(RoundRectangle2D.Float(-4.5f, bodyY + 3.5f, 9f, 4.5f, 4f, 4f))
+        g2.fillRoundRect(-4.5f, bodyY + 3.5f, 9f, 4.5f, 4f, 4f)
 
         // 3. Eyestalks (Protruding from top of shell)
         val stalkDroop = if (!isPaused && state == PetActivityState.FAINTED) 1.5f else 0f
         val headY = bodyY - 7f + stalkDroop
         g2.color = crabBody
-        g2.fill(RoundRectangle2D.Float(-4.2f, headY + 2.5f, 2.5f, 4.5f, 1.2f, 1.2f))
-        g2.fill(RoundRectangle2D.Float(1.7f, headY + 2.5f, 2.5f, 4.5f, 1.2f, 1.2f))
+        g2.fillRoundRect(-4.2f, headY + 2.5f, 2.5f, 4.5f, 1.2f, 1.2f)
+        g2.fillRoundRect(1.7f, headY + 2.5f, 2.5f, 4.5f, 1.2f, 1.2f)
 
         // Eyeball balls at tip of stalks
         g2.fillOval(-4.5f, headY + 1f, 3.2f, 3.2f)
@@ -1116,11 +1154,11 @@ object PetVectorRenderer {
             g2.drawLine(5, headY.toInt() + 5, 2, headY.toInt() + 3)
         } else if (!isPaused && state == PetActivityState.MEME_WARNING) {
             g2.color = EYE_COLOR
-            g2.fill(Ellipse2D.Float(-5f, headY + 0.8f, 3.8f, 4f))
-            g2.fill(Ellipse2D.Float(1.5f, headY + 0.8f, 3.8f, 4f))
+            g2.fillOval(-5f, headY + 0.8f, 3.8f, 4f)
+            g2.fillOval(1.5f, headY + 0.8f, 3.8f, 4f)
             g2.color = EYE_SHINE
-            g2.fill(Ellipse2D.Float(-4f, headY + 1.2f, 1.6f, 1.6f))
-            g2.fill(Ellipse2D.Float(2.5f, headY + 1.2f, 1.6f, 1.6f))
+            g2.fillOval(-4f, headY + 1.2f, 1.6f, 1.6f)
+            g2.fillOval(2.5f, headY + 1.2f, 1.6f, 1.6f)
         } else {
             val blink = !isPaused && (tick % 100L in 95L..99L)
             if (blink) {
@@ -1130,12 +1168,12 @@ object PetVectorRenderer {
                 g2.drawLine(2, headY.toInt() + 2, 4, headY.toInt() + 2)
             } else {
                 g2.color = EYE_COLOR
-                g2.fill(Ellipse2D.Float(-4.3f + gaze * 0.6f, headY + 1.2f, 2.8f, 3.2f))
-                g2.fill(Ellipse2D.Float(1.6f + gaze * 0.6f, headY + 1.2f, 2.8f, 3.2f))
+                g2.fillOval(-4.3f + gaze * 0.6f, headY + 1.2f, 2.8f, 3.2f)
+                g2.fillOval(1.6f + gaze * 0.6f, headY + 1.2f, 2.8f, 3.2f)
 
                 g2.color = EYE_SHINE
-                g2.fill(Ellipse2D.Float(-3.7f + gaze * 0.6f, headY + 1.5f, 1.1f, 1.1f))
-                g2.fill(Ellipse2D.Float(2.2f + gaze * 0.6f, headY + 1.5f, 1.1f, 1.1f))
+                g2.fillOval(-3.7f + gaze * 0.6f, headY + 1.5f, 1.1f, 1.1f)
+                g2.fillOval(2.2f + gaze * 0.6f, headY + 1.5f, 1.1f, 1.1f)
             }
         }
 
@@ -1164,8 +1202,8 @@ object PetVectorRenderer {
                 // Alternating fast typing clatter on the mini keyboard!
                 val tapL = if (isPaused) 0f else sin(tick * 0.85).toFloat() * 2.2f
                 val tapR = if (isPaused) 0f else cos(tick * 0.85).toFloat() * 2.2f
-                g2.draw(Line2D.Float(-6f, bodyY + 3f, -1f, bodyY + 4f - tapL))
-                g2.draw(Line2D.Float(6f, bodyY + 3f, 5f, bodyY + 4f - tapR))
+                g2.drawLine(-6f, bodyY + 3f, -1f, bodyY + 4f - tapL)
+                g2.drawLine(6f, bodyY + 3f, 5f, bodyY + 4f - tapR)
                 g2.color = clawColor
                 drawPincer(g2, 0f, bodyY + 4f - tapL, 0.4f)
                 drawPincer(g2, 5.5f, bodyY + 4f - tapR, 0.4f)
@@ -1173,24 +1211,24 @@ object PetVectorRenderer {
             PetActivityState.CELEBRATING, PetActivityState.STADIUM_VICTORY, PetActivityState.PETTING, PetActivityState.GREETING, PetActivityState.PLAYING -> {
                 // Claws raised high in victory / happy cheer!
                 val wave = if (isPaused) 0f else sin(tick * 0.6).toFloat() * 2f
-                g2.draw(Line2D.Float(-6f, bodyY + 2f, -9f, bodyY - 4f + wave))
-                g2.draw(Line2D.Float(6f, bodyY + 2f, 9f, bodyY - 4f - wave))
+                g2.drawLine(-6f, bodyY + 2f, -9f, bodyY - 4f + wave)
+                g2.drawLine(6f, bodyY + 2f, 9f, bodyY - 4f - wave)
                 g2.color = clawColor
                 drawPincer(g2, -10f, bodyY - 5f + wave, 0.8f + snap * 0.2f)
                 drawPincer(g2, 10f, bodyY - 5f - wave, 0.8f - snap * 0.2f)
             }
             PetActivityState.FAINTED -> {
                 // Drooped outwards flat on ground
-                g2.draw(Line2D.Float(-6f, bodyY + 4f, -11f, 6.5f))
-                g2.draw(Line2D.Float(6f, bodyY + 4f, 11f, 6.5f))
+                g2.drawLine(-6f, bodyY + 4f, -11f, 6.5f)
+                g2.drawLine(6f, bodyY + 4f, 11f, 6.5f)
                 g2.color = clawColor
                 drawPincer(g2, -12f, 6.5f, 0.1f)
                 drawPincer(g2, 12f, 6.5f, 0.1f)
             }
             else -> {
                 // Idle resting / scuttling pose: held at sides, ready to snip
-                g2.draw(Line2D.Float(-6f, bodyY + 2.5f, -9.5f, bodyY + 0.5f + snap))
-                g2.draw(Line2D.Float(6f, bodyY + 2.5f, 9.5f, bodyY + 0.5f - snap))
+                g2.drawLine(-6f, bodyY + 2.5f, -9.5f, bodyY + 0.5f + snap)
+                g2.drawLine(6f, bodyY + 2.5f, 9.5f, bodyY + 0.5f - snap)
                 g2.color = clawColor
                 drawPincer(g2, -10.5f, bodyY + snap, 0.5f + snap * 0.15f)
                 drawPincer(g2, 10.5f, bodyY - snap, 0.5f - snap * 0.15f)
@@ -1200,9 +1238,9 @@ object PetVectorRenderer {
 
     private fun drawPincer(g: Graphics2D, x: Float, y: Float, openAmount: Float) {
         val pinch = openAmount.coerceIn(0.1f, 1.2f)
-        g.fill(RoundRectangle2D.Float(x - 2f, y - 1f - pinch * 1.5f, 4f, 2.5f, 1.5f, 1.5f))
-        g.fill(RoundRectangle2D.Float(x - 2f, y + 0.5f + pinch * 1.5f, 4f, 2.5f, 1.5f, 1.5f))
-        g.fill(Ellipse2D.Float(x - 1.8f, y - 1.2f, 3.6f, 3.6f))
+        g.fillRoundRect(x - 2f, y - 1f - pinch * 1.5f, 4f, 2.5f, 1.5f, 1.5f)
+        g.fillRoundRect(x - 2f, y + 0.5f + pinch * 1.5f, 4f, 2.5f, 1.5f, 1.5f)
+        g.fillOval(x - 1.8f, y - 1.2f, 3.6f, 3.6f)
     }
 
     // =========================================================================
@@ -1219,10 +1257,8 @@ object PetVectorRenderer {
         if (activeAccessories.contains(PetAccessory.BOWTIE.id)) {
             val neckY = 0f
             g2.color = Color(0xFF, 0x47, 0x57)
-            val leftWing = Polygon(intArrayOf(-1, -4, -4), intArrayOf(neckY.toInt(), neckY.toInt() - 2, neckY.toInt() + 2), 3)
-            val rightWing = Polygon(intArrayOf(1, 4, 4), intArrayOf(neckY.toInt(), neckY.toInt() - 2, neckY.toInt() + 2), 3)
-            g2.fill(leftWing)
-            g2.fill(rightWing)
+            g2.fillTriangle(-1f, neckY, -4f, neckY - 2f, -4f, neckY + 2f)
+            g2.fillTriangle(1f, neckY, 4f, neckY - 2f, 4f, neckY + 2f)
             g2.color = Color(0xD6, 0x30, 0x31)
             g2.fillOval(-1, neckY.toInt() - 1, 3, 3)
         }
@@ -1235,8 +1271,8 @@ object PetVectorRenderer {
 
             // Neon cyan ear-cups
             g2.color = HEADPHONES_CUP
-            g2.fill(RoundRectangle2D.Float(-7.5f, headY + 1f, 2.5f, 5f, 1.5f, 1.5f))
-            g2.fill(RoundRectangle2D.Float(5f, headY + 1f, 2.5f, 5f, 1.5f, 1.5f))
+            g2.fillRoundRect(-7.5f, headY + 1f, 2.5f, 5f, 1.5f, 1.5f)
+            g2.fillRoundRect(5f, headY + 1f, 2.5f, 5f, 1.5f, 1.5f)
         }
 
         // 3. Glasses (Level 5+)
@@ -1244,11 +1280,11 @@ object PetVectorRenderer {
             g2.color = GLASSES_FRAME
             g2.stroke = STROKE_12_ROUND
             if (petType == PetType.DUCK) {
-                g2.draw(RoundRectangle2D.Float(-3f, headY + 1.5f, 5f, 4f, 1f, 1f))
+                g2.drawRoundRect(-3, headY.toInt() + 1, 5, 4, 2, 2)
                 g2.drawLine(-3, headY.toInt() + 3, -6, headY.toInt() + 1)
             } else {
-                g2.draw(RoundRectangle2D.Float(-5f, headY + 1.5f, 4f, 3.5f, 1f, 1f))
-                g2.draw(RoundRectangle2D.Float(1f, headY + 1.5f, 4f, 3.5f, 1f, 1f))
+                g2.drawRoundRect(-5, headY.toInt() + 1, 4, 3, 2, 2)
+                g2.drawRoundRect(1, headY.toInt() + 1, 4, 3, 2, 2)
                 g2.drawLine(-1, headY.toInt() + 3, 1, headY.toInt() + 3)
             }
         }
@@ -1257,10 +1293,9 @@ object PetVectorRenderer {
         if (activeAccessories.contains(PetAccessory.WIZARD_HAT.id)) {
             g2.color = HAT_PURPLE
             // Brim
-            g2.fill(Ellipse2D.Float(-6f, headY - 1f, 12f, 3f))
+            g2.fillOval(-6f, headY - 1f, 12f, 3f)
             // Cone
-            val cone = Polygon(intArrayOf(-4, 0, 4), intArrayOf(headY.toInt(), headY.toInt() - 8, headY.toInt()), 3)
-            g2.fill(cone)
+            g2.fillTriangle(-4f, headY, 0f, headY - 8f, 4f, headY)
             // Gold buckle
             g2.color = HAT_GOLD
             g2.fillRect(-1, headY.toInt() - 2, 2, 2)

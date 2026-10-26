@@ -83,7 +83,7 @@ class PetMenuPanel(
             })
         }
         add(header)
-        add(JPanel(GridLayout(1, 3, JBUI.scale(5), 0)).apply {
+        add(JPanel(GridLayout(1, 4, JBUI.scale(4), 0)).apply {
             isOpaque = false
             border = JBUI.Borders.empty(0, 6, 7, 6)
             feedButton = actionButton("Feed", onFeed)
@@ -95,6 +95,14 @@ class PetMenuPanel(
                 focus.accessibleContext.accessibleName = if (focusRunning()) "Stop focus session" else "Start 25 minute focus session"
             }
             add(focus)
+            val pause = actionButton(if (state.isPaused) "Resume" else "Pause") {
+                change { state.isPaused = !state.isPaused }
+            }
+            bindings.add {
+                pause.text = if (state.isPaused) "Resume" else "Pause"
+                pause.accessibleContext.accessibleName = if (state.isPaused) "Resume pet animations" else "Pause pet animations"
+            }
+            add(pause)
         })
         divider(this)
         add(petsMenu())
@@ -145,15 +153,8 @@ class PetMenuPanel(
             PetType.CRAB -> "Rust Crab"
         }
         bindings.forEach { it() }
-        smoothComponents(this)
         revalidate()
         repaint()
-    }
-
-    private fun smoothComponents(component: JComponent) {
-        GraphicsUtil.setAntialiasingType(component, GraphicsUtil.createAATextInfo(RenderingHints.VALUE_TEXT_ANTIALIAS_ON))
-        component.components.filterIsInstance<JComponent>().forEach(::smoothComponents)
-        if (component is JMenu) smoothComponents(component.popupMenu)
     }
 
     private fun change(action: () -> Unit) {
@@ -229,6 +230,7 @@ class PetMenuPanel(
             add(choice(label, radio = true, selected = { state.widthId == id }) { change { state.widthId = id } })
         }
         divider(popupMenu)
+        add(choice("Popup notifications", selected = { state.notificationsEnabled }) { change { state.notificationsEnabled = !state.notificationsEnabled } })
         add(choice("Break & stretch reminders", selected = { state.healthRemindersEnabled }) { change { state.healthRemindersEnabled = !state.healthRemindersEnabled } })
         add(choice("Freeze animation", selected = { state.isPaused }) { change { state.isPaused = !state.isPaused } })
     }

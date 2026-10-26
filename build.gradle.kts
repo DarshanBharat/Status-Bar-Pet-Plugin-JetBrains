@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.pet"
-version = "1.1.0"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -29,25 +29,25 @@ intellijPlatform {
         name = "Status Bar Pet"
         version = project.version.toString()
         vendor {
-            name = "darshan"
+            name = "Darshan Bharat"
             email = "contact@darshan-bharat.com"
             url = "https://darshan-bharat.com"
         }
         ideaVersion {
-            sinceBuild = "262"
+            sinceBuild = "242"
             untilBuild = provider { null }
         }
     }
 }
 
 tasks.withType<JavaCompile> {
-    sourceCompatibility = "25"
-    targetCompatibility = "25"
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         jvmDefault.set(org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY)
     }
 }

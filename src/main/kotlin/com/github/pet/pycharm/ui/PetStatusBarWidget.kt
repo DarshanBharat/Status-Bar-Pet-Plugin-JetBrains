@@ -23,6 +23,7 @@ import kotlin.math.sin
 class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
     companion object {
         const val WIDGET_ID = "com.github.pet.pycharm.StatusBarPet"
+        const val MAX_RUN_REACTION_MS = 20_000L
         private val instances = ConcurrentHashMap<Project, PetStatusBarWidget>()
         private val pendingSignals = ConcurrentHashMap.newKeySet<Pair<Project?, Int>>()
         private fun dispatch(project: Project? = null, signal: Int = 0, action: (PetStatusBarWidget) -> Unit) {
@@ -43,12 +44,14 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
         fun notifyDeletion(deletedLen: Int, project: Project? = null) = dispatch(project, 2) { it.trigger(PetActivityState.SCRUNCHING_PAPER, 1600) }
         fun notifySaved() = dispatch(signal = 3) { it.saveStampUntil = System.currentTimeMillis() + 1500 }
         fun notifyWatchingTests(runName: String, project: Project? = null, runId: Long = 0L) = dispatch(project) {
-            it.runningTasks[runId] = PetActivityState.WATCHING_TESTS
+            val now = System.currentTimeMillis()
+            it.runningTasks[runId] = RunningTask(PetActivityState.WATCHING_TESTS, now + MAX_RUN_REACTION_MS)
             it.trigger(PetActivityState.WATCHING_TESTS, 2400)
         }
         fun notifyRunStarted(runName: String, isDebug: Boolean, project: Project? = null, runId: Long = 0L) = dispatch(project) {
             val activity = if (isDebug) PetActivityState.DEBUGGING else PetActivityState.RUNNING
-            it.runningTasks[runId] = activity
+            val now = System.currentTimeMillis()
+            it.runningTasks[runId] = RunningTask(activity, now + MAX_RUN_REACTION_MS)
             it.trigger(activity, 2400)
         }
         fun notifyRunStopped(runId: Long, project: Project? = null) = dispatch(project) {
@@ -93,6 +96,7 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
         var lastZzzAt: Long = 0L, var buddyNap: Boolean = false)
     private data class SocialVisit(val first: String, val second: String, val started: Long,
         val napAfter: Boolean, var greetingAt: Long = 0L, var lastHeartAt: Long = 0L)
+    private data class RunningTask(val state: PetActivityState, val until: Long)
     private val motions = mutableMapOf<String, Motion>()
     private var disposed = false
     private var statusBar: StatusBar? = null
@@ -102,7 +106,7 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
     private var levelGlowUntil = 0L
     private var socialVisit: SocialVisit? = null
     private var nextSocialAt = System.currentTimeMillis() + 10_000
-    private val runningTasks = linkedMapOf<Long, PetActivityState>()
+    private val runningTasks = linkedMapOf<Long, RunningTask>()
     private var lastActivity = System.currentTimeMillis()
     private var temporaryState = PetActivityState.IDLE
     private var temporaryUntil = 0L
@@ -272,7 +276,7 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
         val margin = min(lane * 0.22f, 16f * scale)
         return index * lane + margin to (index + 1) * lane - margin
     }
-    private fun homeX(index: Int, count: Int): Float = bounds(index, count).first
+    private fun homeX(index: Int, count: Int): Float = bounds(index, count).let { (left, right) -> (left + right) / 2f }
     private fun positionFree(type: PetType, x: Float): Boolean {
         val visit = socialVisit
         if (visit != null && (type.id == visit.first || type.id == visit.second)) return true
@@ -365,18 +369,33 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
             }
         }
     }
-    private fun activityFor(type: PetType, now: Long): PetActivityState = when {
-        petState.isPaused -> PetActivityState.IDLE
-        pettedPet == type.id -> PetActivityState.PETTING
-        now < temporaryUntil -> temporaryState
-        runningTasks.isNotEmpty() -> runningTasks.values.last()
-        motions[type.id]?.buddyNap == true && now - lastActivity > 5000 -> PetActivityState.SLEEPING
-        now - lastActivity > 35_000 && (!petState.showHomes || !petState.wanderingEnabled || petState.reducedMotion || motions[type.id]?.sleeping == true || atHome(type)) -> PetActivityState.SLEEPING
-        else -> PetActivityState.IDLE
+    private fun activeRunningTask(now: Long = System.currentTimeMillis()): PetActivityState? {
+        runningTasks.entries.removeIf { now >= it.value.until }
+        return runningTasks.values.lastOrNull()?.state
+    }
+
+    private fun hasActiveRunningTasks(now: Long = System.currentTimeMillis()): Boolean {
+        runningTasks.entries.removeIf { now >= it.value.until }
+        return runningTasks.isNotEmpty()
+    }
+
+    private fun activityFor(type: PetType, now: Long): PetActivityState {
+        val activeRun = activeRunningTask(now)
+        return when {
+            petState.isPaused -> PetActivityState.IDLE
+            pettedPet == type.id -> PetActivityState.PETTING
+            now < temporaryUntil -> temporaryState
+            activeRun != null -> activeRun
+            motions[type.id]?.buddyNap == true && now - lastActivity > 5000 -> PetActivityState.SLEEPING
+            now - lastActivity > 35_000 && (!petState.showHomes || !petState.wanderingEnabled || petState.reducedMotion || motions[type.id]?.sleeping == true || atHome(type)) -> PetActivityState.SLEEPING
+            else -> PetActivityState.IDLE
+        }
     }
     private fun atHome(type: PetType): Boolean {
         val pets = petState.getVisiblePets()
-        return abs((motions[type.id]?.x ?: 0f) - homeX(pets.indexOf(type), pets.size)) < 0.01f
+        val index = pets.indexOf(type)
+        if (index < 0) return false
+        return abs((motions[type.id]?.x ?: 0f) - homeX(index, pets.size)) < 0.1f
     }
     private fun trackMouse(e: MouseEvent) {
         if (petState.isPaused) return
@@ -474,7 +493,7 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
 
     private fun updateSocialVisit(pets: List<PetType>, now: Long) {
         val allowed = pets.size > 1 && petState.companionInteractions && petState.wanderingEnabled && !petState.reducedMotion &&
-            pointerX == null && pettedPet == null && now >= temporaryUntil && runningTasks.isEmpty() && now - lastActivity in 5000..34_000
+            pointerX == null && pettedPet == null && now >= temporaryUntil && !hasActiveRunningTasks(now) && now - lastActivity in 5000..34_000
         if (!allowed) { socialVisit = null; return }
         var visit = socialVisit
         if (visit == null && now >= nextSocialAt) {
@@ -577,7 +596,7 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
                 val speedMult = speciesSpeedMultiplier(type)
                 val cadence = speciesWalkCadence(type)
                 val step = min(abs(distance), petState.getSpeed().walkSpeed * JBUI.scale(1) * 1.8f * speedMult * elapsedMs / petState.getSpeed().delayMs)
-                val nextX = motion.x + if (distance > 0) step else -step
+                val nextX = if (step >= abs(distance)) motion.target else motion.x + (if (distance > 0) step else -step)
                 if (positionFree(type, nextX)) {
                     motion.x = nextX
                     motion.walk += step * cadence
@@ -644,7 +663,7 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
     }
     private fun levelUp(level: Int) {
         levelGlowUntil = System.currentTimeMillis() + 2200
-        if (System.currentTimeMillis() >= temporaryUntil && runningTasks.isEmpty()) trigger(PetActivityState.CELEBRATING, 2200)
+        if (System.currentTimeMillis() >= temporaryUntil && !hasActiveRunningTasks()) trigger(PetActivityState.CELEBRATING, 2200)
         val unlocked = PetAccessory.entries.filter { it.unlockLevel == level }.joinToString { it.displayName }
         message("Level $level · ${petState.getDeveloperRank()}${if (unlocked.isNotEmpty()) "\nUnlocked: $unlocked" else ""}")
     }
@@ -703,17 +722,36 @@ class PetStatusBarWidget(private val project: Project) : CustomStatusBarWidget {
             activeStatusMenu?.showFeedback(text)
             return
         }
+        if (!petState.notificationsEnabled) return
         if (disposed || !component.isShowing || SwingUtilities.getWindowAncestor(component)?.isActive != true) return
         messageTimer.stop()
         activeMessagePopup?.cancel()
         val panel = JPanel(BorderLayout(JBUI.scale(8), 0)).apply { border = JBUI.Borders.empty(10, 12) }
         val textLabel = JLabel("<html><body style='width:220px'><b>${escape(petState.getPetName())}</b><br/>${escape(text).replace("\n", "<br/>")}</body></html>")
         panel.add(textLabel, BorderLayout.CENTER)
-        panel.add(JButton("×").apply {
-            toolTipText = null
-            accessibleContext.accessibleName = "Close pet message"
-            addActionListener { messageTimer.stop(); activeMessagePopup?.cancel(); activeMessagePopup = null }
-        }, BorderLayout.EAST)
+        val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT, JBUI.scale(2), 0)).apply {
+            isOpaque = false
+            add(JButton("Mute").apply {
+                toolTipText = "Turn off pet popups"
+                accessibleContext.accessibleName = "Turn off all pet popup notifications"
+                isContentAreaFilled = false; isBorderPainted = false
+                font = font.deriveFont(Font.PLAIN, font.size2D - 2f)
+                addActionListener {
+                    petState.notificationsEnabled = false
+                    messageTimer.stop()
+                    activeMessagePopup?.cancel()
+                    activeMessagePopup = null
+                    statusBar?.setInfo("Pet popups muted · re-enable in pet menu")
+                }
+            })
+            add(JButton("×").apply {
+                toolTipText = null
+                accessibleContext.accessibleName = "Close pet message"
+                isContentAreaFilled = false; isBorderPainted = false
+                addActionListener { messageTimer.stop(); activeMessagePopup?.cancel(); activeMessagePopup = null }
+            })
+        }
+        panel.add(buttonPanel, BorderLayout.EAST)
         activeStatusMenu?.isVisible = false
         activeMessagePopup = popup(panel, false)
         showAbove(activeMessagePopup!!, panel.preferredSize)

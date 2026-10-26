@@ -44,6 +44,7 @@ class PetPersistentState : PersistentStateComponent<PetPersistentState> {
     var lastFedTimestamp: Long = 0L
     var nightOwlUnlocked: Boolean = false
     var healthRemindersEnabled: Boolean = false
+    var notificationsEnabled: Boolean = true
 
     var happiness: Int = 85
     var totalKeystrokes: Long = 0
@@ -162,7 +163,15 @@ class PetPersistentState : PersistentStateComponent<PetPersistentState> {
     // Stable lanes prevent a main-pet selection from swapping sleeping companions.
     fun getVisiblePets(): List<PetType> {
         var mask = 1 shl getSelectedPetType().ordinal
-        PetType.entries.forEach { if (it.id in companionPetIds) mask = mask or (1 shl it.ordinal) }
+        val companions = companionPetIds
+        if (companions.isNotEmpty()) {
+            val entries = PetType.entries
+            for (i in 0 until entries.size) {
+                if (companions.contains(entries[i].id)) {
+                    mask = mask or (1 shl entries[i].ordinal)
+                }
+            }
+        }
         return VISIBLE_PETS[mask]
     }
 
